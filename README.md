@@ -4,9 +4,9 @@ Catmandu::Plack::unAPI - unAPI webservice based on Catmandu
 
 # STATUS
 
-[![Build Status](https://travis-ci.org/gbv/CatmanduPlack-unAPI.png)](https://travis-ci.org/gbv/CatmanduPlack-unAPI)
-[![Coverage Status](https://coveralls.io/repos/gbv/CatmanduPlack-unAPI/badge.png?branch=devel)](https://coveralls.io/r/gbv/CatmanduPlack-unAPI?branch=devel)
-[![Kwalitee Score](http://cpants.cpanauthors.org/dist/CatmanduPlack-unAPI.png)](http://cpants.cpanauthors.org/dist/CatmanduPlack-unAPI)
+[![Build Status](https://travis-ci.org/gbv/Catmandu-Plack-unAPI.png)](https://travis-ci.org/gbv/Catmandu-Plack-unAPI)
+[![Coverage Status](https://coveralls.io/repos/gbv/Catmandu-Plack-unAPI/badge.png?branch=devel)](https://coveralls.io/r/gbv/Catmandu-Plack-unAPI?branch=devel)
+[![Kwalitee Score](http://cpants.cpanauthors.org/dist/Catmandu-Plack-unAPI.png)](http://cpants.cpanauthors.org/dist/Catmandu-Plack-unAPI)
 
 # DESCRIPTION
 
@@ -14,7 +14,8 @@ Catmandu::Plack::unAPI implements an unAPI web service as PSGI application.
 
 # SYNOPSIS
 
-Set up an `app.psgi` for instance to get data via arXiv identifier:
+Set up an `app.psgi` for instance to get data via [http://arxiv.org](http://arxiv.org)
+identifier using [Catmandu::Importer::ArXiv](https://metacpan.org/pod/Catmandu::Importer::ArXiv):
 
     use Catmandu::Plack::unAPI;
     use Catmandu::Importer::ArXiv;
@@ -22,14 +23,19 @@ Set up an `app.psgi` for instance to get data via arXiv identifier:
     Catmandu::Plack::unAPI->new(
         query => sub {
             my ($id) = @_;
+            return if $id !~ qr{^(arXiv:)?[0-9abc/.]+}i;
             Catmandu::Importer::ArXiv->new( id => $id )->first;
         }
     )->to_app;
 
+Retrieving items from a [Catmandu::Store](https://metacpan.org/pod/Catmandu::Store) is even simpler:
+
+    Catmandu::Plack::unAPI->new( store => $store )->to_app;
+
 Start the application, e.g. with `plackup app.psgi` and query via unAPI:
 
-    curl localhost:5000/
-    curl 'localhost:5000/?id=1204.0492&format=json'
+    curl 'localhost:5000'
+    curl 'localhost:5000?id=1204.0492&format=json'
 
 # CONFIGURATION
 
@@ -39,6 +45,11 @@ Start the application, e.g. with `plackup app.psgi` and query via unAPI:
     identifier (HTTP request parameter `id`). If the method returns undef, the
     application returns HTTP 404. If the methods returns a scalar, it is used as
     error message for HTTP response 400 (Bad Request).
+
+- store
+
+    Instance of [Catmandu::Store](https://metacpan.org/pod/Catmandu::Store) or store name and options as array reference to
+    query items from.
 
 - formats
 
